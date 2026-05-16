@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Interview Room — Voice Practice with an AI Interviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#1a1814; --ink-soft:#3a342c;
+    --paper:#f4efe6; --paper-warm:#ebe3d3; --paper-deep:#ddd2bb;
+    --accent:#c2410c; --accent-2:#134e4a; --gold:#a16207; --red:#b91c1c;
+    --rule: rgba(26,24,20,0.18);
+    --shadow: 0 1px 0 rgba(26,24,20,0.05), 0 20px 40px -20px rgba(26,24,20,0.25);
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter Tight',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background-image:radial-gradient(circle at 20% 30%,rgba(161,98,7,0.04),transparent 40%),radial-gradient(circle at 80% 70%,rgba(19,78,74,0.03),transparent 40%);mix-blend-mode:multiply}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E");opacity:.4;mix-blend-mode:multiply}
+
+  .masthead{position:relative;z-index:10;padding:22px 48px 0;border-bottom:1px solid var(--rule)}
+  .masthead-top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:12px;border-bottom:1px solid var(--rule)}
+  .masthead-top .dot{display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:8px;vertical-align:middle;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .masthead-title{text-align:center;padding:24px 0 18px;font-family:var(--serif);font-weight:900;font-size:clamp(48px,9vw,96px);letter-spacing:-.04em;line-height:.9;font-variation-settings:"opsz" 144}
+  .masthead-title em{font-style:italic;font-weight:400;color:var(--accent)}
+  .masthead-sub{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);padding:10px 0 14px;border-top:1px solid var(--rule)}
+  .masthead-sub span:nth-child(2){font-style:italic;font-family:var(--serif);text-transform:none;letter-spacing:.02em;font-size:13px;color:var(--ink)}
+
+  .stage{position:relative;z-index:5;max-width:1100px;margin:0 auto;padding:48px 24px 80px}
+  .panel{display:none}
+  .panel.active{display:block;animation:rise .6s cubic-bezier(.2,.8,.2,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .intake-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:start}
+  @media (max-width:820px){.intake-grid{grid-template-columns:1fr;gap:40px}}
+  .intake-lead{font-family:var(--serif);font-size:clamp(28px,3.5vw,42px);line-height:1.15;letter-spacing:-.02em;font-weight:400}
+  .intake-lead em{color:var(--accent);font-style:italic}
+  .intake-lead::first-letter{font-family:var(--serif);font-weight:900;font-size:4.2em;float:left;line-height:.85;padding:8px 14px 0 0;color:var(--accent);font-variation-settings:"opsz" 144}
+  .intake-meta{margin-top:28px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);padding-top:14px;border-top:1px solid var(--rule)}
+  .intake-meta b{color:var(--accent)}
+  .intake-checklist{margin-top:20px;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);line-height:1.7}
+  .intake-checklist span{display:block;padding-left:22px;position:relative}
+  .intake-checklist span::before{content:"♪";position:absolute;left:0;color:var(--accent);font-style:normal}
+
+  .form-card{background:var(--paper-warm);border:1px solid var(--rule);padding:36px;box-shadow:var(--shadow);position:relative}
+  .form-card::before{content:"I.";position:absolute;top:-18px;left:24px;background:var(--paper);padding:0 10px;font-family:var(--serif);font-style:italic;font-weight:500;font-size:14px;color:var(--ink-soft);letter-spacing:.05em}
+  .form-card h2{font-family:var(--serif);font-size:24px;font-weight:500;letter-spacing:-.01em;margin-bottom:6px}
+  .form-card p.helper{font-size:13px;color:var(--ink-soft);margin-bottom:24px;font-style:italic;font-family:var(--serif)}
+  label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;margin-top:18px}
+  input,select{width:100%;background:var(--paper);border:none;border-bottom:1.5px solid var(--ink);padding:10px 0;font-family:var(--serif);font-size:18px;color:var(--ink);outline:none;transition:border-color .2s}
+  input:focus,select:focus{border-bottom-color:var(--accent)}
+
+  .btn{display:inline-flex;align-items:center;gap:12px;background:var(--ink);color:var(--paper);border:none;padding:16px 28px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;margin-top:28px;transition:all .2s;position:relative}
+  .btn:hover{background:var(--accent);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn .arrow{font-family:var(--serif);font-size:18px;line-height:1}
+  .btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .btn-secondary:hover{background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--accent)}
+  .btn-danger{background:var(--red)}
+  .btn-danger:hover{background:#7f1d1d;box-shadow:4px 4px 0 var(--ink)}
+
+  .call-shell{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);box-shadow:var(--shadow);min-height:480px}
+  @media (max-width:820px){.call-shell{grid-template-columns:1fr}}
+  .caller{background:var(--paper-warm);padding:36px 32px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;position:relative}
+  .caller.ai{background:var(--ink);color:var(--paper)}
+  .caller-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.6}
+  .caller-name{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;margin-top:4px}
+
+  .avatar{width:180px;height:180px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;margin:24px 0}
+  .avatar-core{width:130px;height:130px;border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:48px;color:var(--accent);font-weight:500;position:relative;z-index:2;transition:transform .3s}
+  .caller.ai .avatar-core{background:var(--accent);color:var(--paper)}
+  .avatar-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);opacity:0}
+  .avatar.active .avatar-core{transform:scale(1.06)}
+  .avatar.active .avatar-ring{animation:ring 1.8s ease-out infinite}
+  .avatar.active .avatar-ring:nth-child(2){animation-delay:.6s}
+  .avatar.active .avatar-ring:nth-child(3){animation-delay:1.2s}
+  @keyframes ring{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.3);opacity:0}}
+
+  .caller-status{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;opacity:.7}
+  .caller-status .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#888;margin-right:6px;vertical-align:middle}
+  .caller-status.live .status-dot{background:var(--accent);animation:pulse 1.4s ease-in-out infinite}
+
+  .call-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .call-bar .progress-track{flex:1;height:2px;background:var(--paper-deep);margin:0 18px;position:relative;overflow:hidden}
+  .call-bar .progress-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);width:0%;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .transcript{margin-top:28px;background:var(--paper-warm);border:1px solid var(--rule);padding:22px 24px;position:relative;max-height:260px;overflow-y:auto}
+  .transcript::before{content:"Live transcript";position:absolute;top:-10px;left:18px;background:var(--paper);padding:0 10px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft)}
+  .transcript-line{font-family:var(--serif);font-size:17px;line-height:1.55;padding:8px 0}
+  .transcript-line .who{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin-right:10px}
+  .transcript-line.ai .who{color:var(--accent)}
+  .transcript-line.you .who{color:var(--accent-2)}
+  .transcript-line.you{font-style:italic}
+  .transcript-line.interim{opacity:.5}
+
+  .call-controls{display:flex;justify-content:center;gap:16px;margin-top:32px;flex-wrap:wrap}
+
+  .help-banner{background:var(--paper-warm);border-left:4px solid var(--accent);padding:14px 18px;margin:14px 0;font-family:var(--serif);font-size:14px;color:var(--ink-soft);font-style:italic}
+  .help-banner b{font-style:normal;color:var(--ink);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+
+  .thinking{text-align:center;padding:80px 20px}
+  .thinking-orb{width:70px;height:70px;margin:0 auto 28px;position:relative}
+  .thinking-orb::before,.thinking-orb::after{content:"";position:absolute;inset:0;border:2px solid var(--accent);border-radius:50%;animation:orb 2s ease-out infinite}
+  .thinking-orb::after{animation-delay:1s}
+  @keyframes orb{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.4);opacity:0}}
+  .thinking-orb .core{position:absolute;inset:25px;background:var(--accent);border-radius:50%}
+  .thinking-text{font-family:var(--serif);font-style:italic;font-size:22px}
+  .thinking-sub{margin-top:8px;font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft)}
+
+  .feedback-header{text-align:center;padding-bottom:32px;border-bottom:2px solid var(--ink);margin-bottom:40px}
+  .feedback-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .feedback-title{font-family:var(--serif);font-size:clamp(40px,6vw,72px);font-weight:900;letter-spacing:-.03em;line-height:.95;font-variation-settings:"opsz" 144}
+  .feedback-title em{font-style:italic;color:var(--accent);font-weight:400}
+  .feedback-byline{margin-top:14px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink-soft)}
+
+  .score-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-bottom:48px}
+  @media (max-width:700px){.score-row{grid-template-columns:1fr 1fr}}
+  .score-cell{padding:22px 18px;border-right:1px solid var(--rule);text-align:center}
+  .score-cell:last-child{border-right:none}
+  @media (max-width:700px){.score-cell:nth-child(2n){border-right:none}.score-cell{border-bottom:1px solid var(--rule)}}
+  .score-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .score-value{font-family:var(--serif);font-weight:900;font-size:46px;line-height:1;color:var(--accent);font-variation-settings:"opsz" 144}
+  .score-value .denom{font-size:18px;color:var(--ink-soft);font-weight:400}
+
+  .verdict{background:var(--ink);color:var(--paper);padding:36px 40px;margin:0 0 48px;position:relative}
+  .verdict::before{content:"“";position:absolute;top:-10px;left:24px;font-family:var(--serif);font-size:120px;line-height:1;color:var(--accent);font-style:italic}
+  .verdict-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(244,239,230,.6);margin-bottom:12px;padding-left:40px}
+  .verdict-text{font-family:var(--serif);font-size:22px;line-height:1.45;padding-left:40px}
+
+  .columns{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);margin-bottom:48px}
+  @media (max-width:700px){.columns{grid-template-columns:1fr}}
+  .column{background:var(--paper);padding:28px}
+  .column h3{font-family:var(--serif);font-size:22px;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+  .column h3 .badge{font-family:var(--mono);font-size:10px;background:var(--ink);color:var(--paper);padding:4px 8px;letter-spacing:.1em}
+  .column h3.strengths .badge{background:var(--accent-2)}
+  .column h3.improve .badge{background:var(--accent)}
+  .column ul{list-style:none}
+  .column li{font-family:var(--serif);font-size:16px;line-height:1.55;padding:10px 0 10px 22px;border-bottom:1px dashed var(--rule);position:relative}
+  .column li:last-child{border-bottom:none}
+  .column li::before{content:"→";position:absolute;left:0;top:10px;color:var(--accent);font-weight:600}
+  .column.strengths-col li::before{content:"✓";color:var(--accent-2)}
+
+  .per-question{margin-bottom:48px}
+  .per-question h3{font-family:var(--serif);font-size:26px;font-weight:500;margin-bottom:8px;letter-spacing:-.01em}
+  .per-question .pq-sub{font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14px;margin-bottom:24px}
+  .qa-item{border-top:1px solid var(--rule);padding:24px 0}
+  .qa-item:last-child{border-bottom:1px solid var(--rule)}
+  .qa-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px;flex-wrap:wrap}
+  .qa-q{font-family:var(--serif);font-weight:500;font-size:18px;flex:1;line-height:1.35}
+  .qa-score{font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:var(--paper-warm);padding:4px 10px;border:1px solid var(--rule)}
+  .qa-answer{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);padding-left:16px;border-left:2px solid var(--accent);margin:10px 0 12px;line-height:1.5}
+  .qa-coach{font-family:var(--sans);font-size:14px;line-height:1.55}
+  .qa-coach::before{content:"Coach's note — ";font-family:var(--serif);font-style:italic;font-weight:500;color:var(--accent)}
+  .qa-metrics{display:flex;gap:14px;margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase;flex-wrap:wrap}
+  .qa-metrics span b{color:var(--accent);font-family:var(--serif);font-style:normal;font-size:14px;letter-spacing:0;margin-left:4px}
+
+  .error-box{background:#fee;border:1.5px solid #c2410c;padding:18px 22px;margin:20px 0;font-family:var(--serif);font-size:15px;color:#7c2d12}
+  .error-box b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+
+  .footer-note{text-align:center;padding:40px 20px 24px;font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);border-top:1px solid var(--rule);margin-top:60px}
+  .footer-note em{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)}
+  .ornament{text-align:center;font-family:var(--serif);color:var(--accent);font-size:22px;letter-spacing:1.2em;margin:36px 0;user-select:none}
+  .timer-pill{display:inline-block;background:var(--paper);padding:4px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink);border-radius:999px}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <span><span class="dot"></span>Live voice session</span>
+    <span>Vol. I · No. 04</span>
+    <span id="dateStamp"></span>
+  </div>
+  <h1 class="masthead-title">The Interview <em>Room</em></h1>
+  <div class="masthead-sub">
+    <span>Speak · Listen · Reflect</span>
+    <span>A voice call with an AI interviewer — the way the real one will feel.</span>
+    <span>Runs entirely in your browser</span>
+  </div>
+</header>
+
+<main class="stage">
+
+  <section class="panel active" id="panel-intake">
+    <div class="intake-grid">
+      <div>
+        <p class="intake-lead">
+          Pick up the phone. The AI interviewer will <em>speak</em> the questions out loud — you answer with your <em>voice</em>, just like the real thing.
+        </p>
+        <p class="intake-meta">
+          <b>How it works.</b> Five HR questions tailored to your role, asked aloud. Your voice is transcribed live. At the end, an evaluator scores your answers on six dimensions.
+        </p>
+        <div class="intake-checklist">
+          <span>Works instantly — no downloads, no setup.</span>
+          <span>Best in Chrome or Edge. A microphone is required.</span>
+          <span>Your voice never leaves your computer.</span>
+        </div>
+      </div>
+
+      <form class="form-card" id="intakeForm" onsubmit="event.preventDefault(); startInterview();">
+        <h2>Set up your call</h2>
+        <p class="helper">A few details so the questions are right for you.</p>
+
+        <label for="name">Your name</label>
+        <input type="text" id="name" required placeholder="e.g. Layla Hassan" />
+
+        <label for="field">Field of study</label>
+        <input type="text" id="field" required placeholder="e.g. Computer Science, Marketing" />
+
+        <label for="role">Role you're preparing for</label>
+        <input type="text" id="role" required placeholder="e.g. Software Engineering Intern" />
+
+        <label for="level">Experience level</label>
+        <select id="level">
+          <option value="entry">First-time interviewer</option>
+          <option value="some">Some experience (internship / part-time)</option>
+          <option value="grad">Graduating, with projects</option>
+        </select>
+
+        <button class="btn" type="submit" id="startBtn">
+          <span id="startBtnLabel">📞 Start the call</span>
+          <span class="arrow">→</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-call">
+    <div class="call-bar">
+      <span id="progressLabel">Question 1 of 5</span>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="timer-pill" id="callTimer">00:00</span>
+    </div>
+
+    <div class="call-shell">
+      <div class="caller ai">
+        <div>
+          <div class="caller-label">Interviewer</div>
+          <div class="caller-name">Mira</div>
+        </div>
+        <div class="avatar" id="aiAvatar">
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring"></div>
+          <div class="avatar-core">M</div>
+        </div>
+        <div class="caller-status" id="aiStatus"><span class="status-dot"></span>Connecting…</div>
+      </div>
+
+      <div class="caller you">
+        <div>
+          <div class="caller-label">Candidate</div>
+          <div class="caller-name" id="youName">You</div>
+        </div>
+        <div class="avatar" id="youAvatar">
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring"></div>
+          <div class="avatar-core" id="youInitial">•</div>
+        </div>
+        <div class="caller-status" id="youStatus"><span class="status-dot"></span>Waiting for the question</div>
+      </div>
+    </div>
+
+    <div class="transcript" id="transcript"></div>
+
+    <div id="helpMount"></div>
+
+    <div class="call-controls">
+      <button class="btn btn-secondary" type="button" id="repeatBtn" onclick="repeatQuestion()" disabled>↻ Repeat the question</button>
+      <button class="btn" type="button" id="answerBtn" onclick="toggleAnswering()" disabled>🎙 Start answering</button>
+      <button class="btn btn-secondary" type="button" id="skipBtn" onclick="skipQuestion()" disabled>Skip</button>
+      <button class="btn btn-danger" type="button" onclick="endCallEarly()">End call</button>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-thinking">
+    <div class="thinking">
+      <div class="thinking-orb"><div class="core"></div></div>
+      <div class="thinking-text" id="thinkingText">Reviewing your answers…</div>
+      <div class="thinking-sub">The evaluator is preparing your written feedback</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-feedback">
+    <div class="feedback-header">
+      <div class="feedback-eyebrow">— The Feedback —</div>
+      <h2 class="feedback-title">An honest <em>review</em> of your call</h2>
+      <p class="feedback-byline" id="feedbackByline">Prepared by the Interview Room evaluator</p>
+    </div>
+
+    <div class="score-row" id="scoreRow"></div>
+
+    <div class="verdict">
+      <div class="verdict-label">The verdict</div>
+      <p class="verdict-text" id="verdictText"></p>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <h3 class="strengths">What worked <span class="badge">strengths</span></h3>
+        <ul class="strengths-col" id="strengthsList"></ul>
+      </div>
+      <div class="column">
+        <h3 class="improve">Where to sharpen <span class="badge">to improve</span></h3>
+        <ul id="improveList"></ul>
+      </div>
+    </div>
+
+    <div class="per-question">
+      <h3>Question by question</h3>
+      <p class="pq-sub">A breakdown of how each answer was scored.</p>
+      <div id="perQuestionList"></div>
+    </div>
+
+    <div class="ornament">❦  ✦  ❦</div>
+
+    <div style="text-align:center;padding:20px 0;">
+      <button class="btn" type="button" onclick="restart()">
+        <span>Run another session</span>
+        <span class="arrow">↻</span>
+      </button>
+    </div>
+  </section>
+
+  <div id="errorMount"></div>
+</main>
+
+<footer class="footer-note">
+  <em>The Interview Room</em> · A private rehearsal space · No downloads · No accounts · No data leaves your browser
+</footer>
+
+<script>
+document.getElementById('dateStamp').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE INTERVIEW AI — RULE-BASED EVALUATOR
+   This is custom-built logic that analyzes spoken answers against
+   well-established HR interview criteria. Six dimensions:
+     1. Length              (too brief / good / too rambly)
+     2. Specificity         (numbers, examples, named items)
+     3. STAR structure      (Situation, Task, Action, Result)
+     4. Confidence language (active "I led" vs hedging "I just")
+     5. Fillers             (um, uh, like, you know)
+     6. Topic relevance     (does it answer THIS question?)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const QUESTION_BANK = {
+  intro: [
+    "To start, could you tell me a bit about yourself and your background?",
+    "Walk me through your background — where are you coming from and where are you heading?",
+    "Let's begin with a quick introduction. Who are you, and what brought you here today?",
+  ],
+  motivation: [
+    "What drew you to apply for this role specifically?",
+    "Why are you interested in this position, and why now?",
+    "Out of all the roles you could apply for, what made this one stand out?",
+  ],
+  strengths: [
+    "What would you say is your greatest strength, and can you give me an example of it in action?",
+    "Tell me about a skill you're particularly proud of, and how you've used it.",
+    "What's something you do better than most people your age, and how do you know?",
+  ],
+  weakness: [
+    "What's one area you're actively trying to improve about yourself?",
+    "Tell me about a weakness — something you've noticed and are working on.",
+    "Where do you think you have the most room to grow, and what are you doing about it?",
+  ],
+  behavioral_challenge: [
+    "Tell me about a time you faced a difficult challenge. How did you handle it?",
+    "Walk me through a moment when something went wrong. What did you do?",
+    "Describe a setback you've had recently and how you worked through it.",
+  ],
+  behavioral_team: [
+    "Tell me about a time you worked with a team. What was your role, and what was the outcome?",
+    "Describe a group project or collaboration that taught you something important.",
+    "Have you ever had a disagreement with a teammate? How did you handle it?",
+  ],
+  goals: [
+    "Where do you see yourself in three to five years?",
+    "What does success look like for you, a few years from now?",
+    "If everything goes well, where do you hope to be by the time you graduate or shortly after?",
+  ],
+  curiosity: [
+    "What's something in your field you've been learning recently outside of school?",
+    "What's a project or topic that genuinely excites you right now?",
+    "Tell me about something you've worked on out of pure curiosity, not because you had to.",
+  ],
+};
+
+const QUESTION_PICKS = {
+  entry: ['intro', 'motivation', 'strengths', 'behavioral_challenge', 'goals'],
+  some:  ['intro', 'motivation', 'strengths', 'behavioral_team', 'goals'],
+  grad:  ['intro', 'motivation', 'curiosity', 'behavioral_challenge', 'goals'],
+};
+
+const TOPIC_LABELS = {
+  intro: 'Self introduction',
+  motivation: 'Motivation',
+  strengths: 'Strengths',
+  weakness: 'Weaknesses',
+  behavioral_challenge: 'Challenge story',
+  behavioral_team: 'Teamwork story',
+  goals: 'Future goals',
+  curiosity: 'Curiosity / learning',
+};
+
+const FILLER_WORDS = ['um', 'uh', 'ah', 'er', 'erm', 'like', 'you know', 'i mean', 'sort of', 'kind of', 'basically', 'actually', 'literally'];
+const HEDGE_WORDS  = ['maybe', 'perhaps', 'i guess', 'i think maybe', 'i\'m not sure', 'kind of', 'sort of', 'i just', 'just a', 'a bit', 'a little', 'try to'];
+const STRONG_VERBS = ['led', 'built', 'designed', 'created', 'launched', 'shipped', 'organized', 'managed', 'taught', 'presented', 'solved', 'fixed', 'wrote', 'implemented', 'delivered', 'achieved', 'won', 'increased', 'decreased', 'improved', 'reduced', 'developed', 'introduced', 'established', 'completed', 'founded', 'mentored', 'coordinated'];
+
+const STAR_MARKERS = {
+  S: ['when i', 'during', 'in my', 'last year', 'last semester', 'one time', 'recently', 'a few months ago', 'at university', 'at school', 'in class', 'on a project'],
+  T: ['my role was', 'i was responsible', 'i needed to', 'my task was', 'i had to', 'the goal was', 'we were asked', 'i was asked'],
+  A: ['i decided', 'i started', 'i organized', 'i designed', 'i built', 'i took the lead', 'i suggested', 'i wrote', 'i created', 'i made', 'i did', 'i developed', 'i implemented', 'i talked to', 'i asked'],
+  R: ['as a result', 'in the end', 'we ended up', 'we managed', 'we finished', 'it worked', 'it led to', 'i learned', 'i was able to', 'i got', 'we got', 'the outcome', 'eventually', 'finally', 'this taught me'],
+};
+
+const TOPIC_KEYWORDS = {
+  intro: ['study', 'university', 'college', 'major', 'background', 'school', 'name', 'i am', 'i\'m', 'student', 'year', 'currently'],
+  motivation: ['because', 'interested', 'passion', 'want', 'love', 'excited', 'opportunity', 'role', 'company', 'why', 'fit', 'align'],
+  strengths: ['good at', 'strong', 'strength', 'best at', 'i excel', 'i\'m proud', 'i can', 'i\'m able', 'skilled'],
+  weakness: ['weakness', 'improve', 'working on', 'struggle', 'challenge for me', 'not as strong', 'i need to', 'i want to get better'],
+  behavioral_challenge: ['challenge', 'problem', 'difficult', 'hard', 'tough', 'failed', 'failure', 'setback', 'mistake', 'stuck', 'didn\'t work'],
+  behavioral_team: ['team', 'group', 'partner', 'classmate', 'colleague', 'we', 'us', 'together', 'collaboration', 'project'],
+  goals: ['in the future', 'years', 'goal', 'hope', 'plan', 'see myself', 'want to', 'aspire', 'long term', 'eventually', 'after graduation'],
+  curiosity: ['learn', 'learning', 'studying', 'reading', 'course', 'tutorial', 'project', 'curious', 'interested', 'explore', 'side', 'hobby'],
+};
+
+/* ────────────────────────────────────────────────────────────
+   THE EVALUATOR — analyzes one answer for one question topic
+   Returns a per-question score (0-10) and detailed metrics.
+   ──────────────────────────────────────────────────────────── */
+function evaluateAnswer(topic, answer) {
+  // empty / skipped
+  if (!answer || answer === '(skipped)' || answer === '(no answer captured)') {
+    return {
+      score: 0,
+      note: answer === '(skipped)' 
+        ? 'You skipped this. In a real interview, attempt every question — even a brief honest answer scores higher than silence.'
+        : 'No answer was captured. Check that your microphone is working before the next call.',
+      metrics: { length: 0, specificity: 0, structure: 0, confidence: 0, fillers: 0, relevance: 0 },
+    };
+  }
+
+  const text = answer.toLowerCase().trim();
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  const sentenceCount = (answer.match(/[.!?]+/g) || []).length || 1;
+
+  // ─── 1. LENGTH (0-10)
+  let lengthScore;
+  if (wordCount < 15)       lengthScore = 2;
+  else if (wordCount < 30)  lengthScore = 5;
+  else if (wordCount < 60)  lengthScore = 8;
+  else if (wordCount < 130) lengthScore = 10;
+  else if (wordCount < 200) lengthScore = 8;
+  else                      lengthScore = 6;
+
+  // ─── 2. SPECIFICITY (0-10) — numbers, named things, examples
+  let specScore = 4;
+  const numbers = text.match(/\b\d+\b/g) || [];
+  if (numbers.length >= 1) specScore += 2;
+  if (numbers.length >= 3) specScore += 1;
+  if (/\bfor example|for instance|specifically|in particular\b/.test(text)) specScore += 2;
+  if (/\b(last year|last month|last semester|recently|two years ago|three months)\b/.test(text)) specScore += 1;
+  // proper nouns (rough heuristic: capitalized words mid-sentence in original)
+  const capitalized = (answer.match(/(?<=\s)[A-Z][a-z]+/g) || []).length;
+  if (capitalized >= 2) specScore += 1;
+  specScore = Math.min(10, specScore);
+
+  // ─── 3. STAR STRUCTURE (0-10) — only fully required for behavioral
+  let starHits = 0;
+  for (const part of ['S','T','A','R']) {
+    if (STAR_MARKERS[part].some(m => text.includes(m))) starHits++;
+  }
+  const isBehavioral = topic.startsWith('behavioral');
+  const structureScore = isBehavioral
+    ? Math.min(10, starHits * 2.5)
+    : Math.min(10, 4 + starHits * 1.5); // bonus for any structure on non-behavioral
+
+  // ─── 4. CONFIDENCE LANGUAGE (0-10)
+  let strongVerbHits = 0;
+  for (const v of STRONG_VERBS) {
+    const re = new RegExp(`\\bi\\s+${v}\\b|\\b${v}\\b`, 'g');
+    const m = text.match(re);
+    if (m) strongVerbHits += m.length;
+  }
+  let hedgeHits = 0;
+  for (const h of HEDGE_WORDS) if (text.includes(h)) hedgeHits++;
+  let confidenceScore = 5 + Math.min(4, strongVerbHits) - Math.min(4, hedgeHits);
+  confidenceScore = Math.max(0, Math.min(10, confidenceScore));
+
+  // ─── 5. FILLERS (0-10, fewer is better)
+  let fillerCount = 0;
+  for (const f of FILLER_WORDS) {
+    const re = new RegExp(`\\b${f.replace(/\s+/g,'\\s+')}\\b`, 'g');
+    const m = text.match(re);
+    if (m) fillerCount += m.length;
+  }
+  const fillersPerSentence = fillerCount / Math.max(1, sentenceCount);
+  let fillerScore;
+  if (fillersPerSentence < 0.3)  fillerScore = 10;
+  else if (fillersPerSentence < 0.7) fillerScore = 7;
+  else if (fillersPerSentence < 1.2) fillerScore = 4;
+  else                                fillerScore = 2;
+
+  // ─── 6. TOPIC RELEVANCE (0-10)
+  const kws = TOPIC_KEYWORDS[topic] || [];
+  let kwHits = 0;
+  for (const k of kws) if (text.includes(k)) kwHits++;
+  const relevanceScore = Math.min(10, 3 + kwHits * 1.5);
+
+  // ─── COMPOSITE per-question score (weighted)
+  let composite = (
+    lengthScore     * 0.15 +
+    specScore       * 0.25 +
+    structureScore  * (isBehavioral ? 0.25 : 0.15) +
+    confidenceScore * 0.15 +
+    fillerScore     * 0.10 +
+    relevanceScore  * (isBehavioral ? 0.10 : 0.20)
+  );
+  composite = Math.round(composite * 10) / 10;
+
+  // ─── coaching note — pick the lowest-scoring dimension and address it
+  const dims = [
+    { name: 'length',      score: lengthScore },
+    { name: 'specificity', score: specScore },
+    { name: 'structure',   score: structureScore },
+    { name: 'confidence',  score: confidenceScore },
+    { name: 'fillers',     score: fillerScore },
+    { name: 'relevance',   score: relevanceScore },
+  ];
+  dims.sort((a,b) => a.score - b.score);
+  const weakest = dims[0];
+  const note = noteFor(weakest.name, topic, { wordCount, fillerCount, strongVerbHits, hedgeHits, starHits, numbers: numbers.length });
+
+  return {
+    score: Math.round(composite),
+    note,
+    metrics: { 
+      length: lengthScore, 
+      specificity: specScore, 
+      structure: structureScore, 
+      confidence: confidenceScore, 
+      fillers: fillerScore, 
+      relevance: relevanceScore 
+    },
+    wordCount, fillerCount, strongVerbHits,
+  };
+}
+
+function noteFor(weakest, topic, m) {
+  const isBehavioral = topic.startsWith('behavioral');
+  switch (weakest) {
+    case 'length':
+      if (m.wordCount < 20) return `Your answer was very brief — only about ${m.wordCount} words. Expand with a specific example or moment from your life so it lands.`;
+      return `The answer ran long. Aim for 3–5 focused sentences, then stop. Brevity reads as confidence.`;
+    case 'specificity':
+      return `The answer was general. Anchor it with a specific moment, a number, or a named project — vague answers blur together with everyone else's.`;
+    case 'structure':
+      if (isBehavioral) return `Behavioral answers work best in STAR order — Situation, Task, Action, Result. You touched ${m.starHits} of the four. Try walking through all four next time.`;
+      return `Add a clearer opening sentence and a closing point. A small bit of structure makes you easier to follow.`;
+    case 'confidence':
+      if (m.hedgeHits > 1) return `Watch for hedging language like "I just," "kind of," or "maybe." Replace with direct verbs: "I led," "I built," "I decided."`;
+      return `Use stronger action verbs. "I built a project" reads more confident than "I worked on a project."`;
+    case 'fillers':
+      return `You used ${m.fillerCount} filler words (um, uh, like). Pausing silently is fine — pausing with "uh" weakens the answer. Practice replacing fillers with a breath.`;
+    case 'relevance':
+      return `The answer drifted from what was asked. Read the question carefully and make sure your first sentence directly addresses it.`;
+    default:
+      return `Solid foundation. Tighten the structure: a clear opening, one concrete example, then a closing point.`;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   AGGREGATE — combines per-question scores into overall feedback
+   ──────────────────────────────────────────────────────────── */
+function aggregateFeedback(answers, candidate) {
+  const evals = answers.map(a => evaluateAnswer(a.topic, a.answer));
+
+  // skipped/empty count
+  const skippedCount = answers.filter(a => a.answer === '(skipped)' || a.answer === '(no answer captured)').length;
+  const answeredCount = answers.length - skippedCount;
+
+  // averages across answered questions
+  const real = evals.filter((_, i) => answers[i].answer !== '(skipped)' && answers[i].answer !== '(no answer captured)');
+  const avg = (key) => real.length === 0 ? 0 : Math.round(real.reduce((s,e) => s + e.metrics[key], 0) / real.length * 10);
+
+  let clarity    = (avg('length') + avg('fillers')) / 2;
+  let structure  = (avg('structure') + avg('specificity')) / 2;
+  let confidence = (avg('confidence') + avg('relevance')) / 2;
+
+  // penalty for skipped questions
+  const skipPenalty = skippedCount * 10;
+  clarity    = Math.max(10, Math.round(clarity - skipPenalty));
+  structure  = Math.max(10, Math.round(structure - skipPenalty));
+  confidence = Math.max(10, Math.round(confidence - skipPenalty));
+
+  const overall = Math.round((clarity + structure + confidence) / 3);
+
+  // ─── verdict (chosen by overall band & skip count)
+  let verdict;
+  if (skippedCount >= 2) {
+    verdict = `You skipped ${skippedCount} questions, which makes it hard for any interviewer to evaluate you. The questions you did answer showed some promise — but commit to every question in the real room, even if your answer isn't perfect.`;
+  } else if (overall >= 80) {
+    verdict = `A strong run. Your answers had real substance, you used concrete examples, and your delivery sounded confident. Polish the rough edges and you're ready.`;
+  } else if (overall >= 65) {
+    verdict = `A solid foundation. You have the right instincts, but some answers felt thin and could use sharper structure. A few practice runs will move you from competent to memorable.`;
+  } else if (overall >= 45) {
+    verdict = `There's potential here, but the answers need more concrete examples and a clearer structure. The good news: this is exactly what practice fixes. Focus on the points below and run another session.`;
+  } else {
+    verdict = `An early start. Your answers were brief and lacked specific examples — that's normal for a first practice. Use the feedback below as a checklist and try again. Real growth comes from doing this several times.`;
+  }
+
+  // ─── strengths & improvements (driven by which metrics scored best/worst)
+  const dimAverages = {
+    length:      avg('length'),
+    specificity: avg('specificity'),
+    structure:   avg('structure'),
+    confidence:  avg('confidence'),
+    fillers:     avg('fillers'),
+    relevance:   avg('relevance'),
+  };
+  const sortedDims = Object.entries(dimAverages).sort((a,b) => b[1] - a[1]);
+
+  const STRENGTH_TEXT = {
+    length:      'Your answers landed at a good length — neither too short to be empty nor too long to lose the listener.',
+    specificity: 'You backed up your claims with concrete examples and specifics. That makes you memorable.',
+    structure:   'Your answers had a clear shape — an opening, a middle, and a closing point. Easy to follow.',
+    confidence:  'You used direct action verbs ("I built," "I led") that signal ownership and confidence.',
+    fillers:     'You kept filler words ("um," "like") to a minimum, which made you sound prepared.',
+    relevance:   'You stayed on topic and directly answered each question, instead of drifting into nearby territory.',
+  };
+  const IMPROVE_TEXT = {
+    length:      'Several answers were too brief. Aim for 3–5 sentences — enough to include one concrete example.',
+    specificity: 'Your answers stayed general. Use specific moments, numbers, named projects — they make you stand out.',
+    structure:   'Behavioral answers especially need the STAR shape: Situation, Task, Action, Result. Practice that pattern.',
+    confidence:  'Watch hedging language like "I just," "kind of," "maybe." Replace with active verbs.',
+    fillers:     'Practice pausing silently instead of saying "um." Even a one-second pause sounds more thoughtful than a filler.',
+    relevance:   'Some answers drifted from what was asked. Start each answer by directly addressing the question.',
+  };
+
+  const strengths = sortedDims.slice(0, 3).map(([dim]) => STRENGTH_TEXT[dim]);
+  const improvements = sortedDims.slice(-3).reverse().map(([dim]) => IMPROVE_TEXT[dim]);
+
+  // ─── per-question array
+  const per_question = answers.map((a, i) => ({
+    question: a.question,
+    topic_label: TOPIC_LABELS[a.topic] || a.topic,
+    answer: a.answer,
+    score: evals[i].score,
+    note: evals[i].note,
+    metrics: evals[i].metrics,
+    wordCount: evals[i].wordCount,
+    fillerCount: evals[i].fillerCount,
+  }));
+
+  return {
+    scores: { overall, clarity, structure, confidence },
+    verdict,
+    strengths,
+    improvements,
+    per_question,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE & UI
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const state = {
+  candidate: {},
+  questions: [],
+  answers: [],
+  current: 0,
+  isListening: false,
+  currentInterim: '',
+  currentFinal: '',
+  callStartTs: null,
+  timerInterval: null,
+};
+
+function show(panelId) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showError(msg) {
+  document.getElementById('errorMount').innerHTML = `<div class="error-box"><b>Something went wrong</b><br>${msg}</div>`;
+  setTimeout(() => { document.getElementById('errorMount').innerHTML = ''; }, 10000);
+}
+
+function showHelp(msg) {
+  document.getElementById('helpMount').innerHTML = `<div class="help-banner"><b>Tip · </b>${msg}</div>`;
+}
+function clearHelp() { document.getElementById('helpMount').innerHTML = ''; }
+
+/* ─── question generation (no API — purely from the bank) ─── */
+function pickQuestions(level) {
+  const topics = QUESTION_PICKS[level] || QUESTION_PICKS.entry;
+  return topics.map(topic => {
+    const variants = QUESTION_BANK[topic];
+    const question = variants[Math.floor(Math.random() * variants.length)];
+    return { topic, question };
+  });
+}
+
+/* ─── speech synthesis ─── */
+let voicesLoaded = false;
+function loadVoices() {
+  return new Promise(resolve => {
+    const v = window.speechSynthesis.getVoices();
+    if (v.length) { voicesLoaded = true; return resolve(v); }
+    window.speechSynthesis.onvoiceschanged = () => { voicesLoaded = true; resolve(window.speechSynthesis.getVoices()); };
+    setTimeout(() => { if (!voicesLoaded) resolve(window.speechSynthesis.getVoices() || []); }, 1500);
+  });
+}
+function pickVoice(voices) {
+  const preferred = [
+    'Google UK English Female', 'Google US English',
+    'Microsoft Aria Online (Natural) - English (United States)',
+    'Microsoft Jenny Online (Natural) - English (United States)',
+    'Samantha', 'Karen', 'Daniel', 'Alex',
+  ];
+  for (const name of preferred) { const m = voices.find(v => v.name === name); if (m) return m; }
+  return voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) || voices[0];
+}
+async function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  const voices = await loadVoices();
+  const voice = pickVoice(voices);
+  setAiSpeaking(true);
+  setYouStatus(false, 'Listening to the question');
+  return new Promise((resolve) => {
+    const u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.rate = 0.98; u.pitch = 1.0; u.volume = 1.0;
+    u.onend = () => { setAiSpeaking(false); resolve(); };
+    u.onerror = () => { setAiSpeaking(false); resolve(); };
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  });
+}
+function stopSpeaking() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); setAiSpeaking(false); }
+
+/* ─── speech recognition ─── */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+
+function setupRecognition() {
+  if (!SpeechRecognition) return null;
+  const r = new SpeechRecognition();
+  r.continuous = true;
+  r.interimResults = true;
+  r.lang = 'en-US';
+  r.onresult = (event) => {
+    let interim = '', finalText = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalText += transcript + ' ';
+      else interim += transcript;
+    }
+    if (finalText) state.currentFinal += finalText;
+    state.currentInterim = interim;
+    updateLiveTranscript();
+  };
+  r.onerror = (event) => {
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      showError('Microphone permission denied. Please allow microphone access and try again.');
+      stopListening();
+    } else if (event.error === 'audio-capture') {
+      showError('No microphone found.'); stopListening();
+    }
+  };
+  r.onend = () => { if (state.isListening) { try { r.start(); } catch (e) {} } };
+  return r;
+}
+function startListening() {
+  if (!recognition) recognition = setupRecognition();
+  if (!recognition) { showError('Voice recognition not supported in this browser. Try Chrome or Edge.'); return false; }
+  state.isListening = true;
+  state.currentFinal = ''; state.currentInterim = '';
+  liveYouLine = null;
+  try { recognition.start(); } catch (e) {}
+  setYouListening(true);
+  document.getElementById('answerBtn').innerHTML = '⏹ I\'m done answering';
+  return true;
+}
+function stopListening() {
+  state.isListening = false;
+  if (recognition) { try { recognition.stop(); } catch (e) {} }
+  setYouListening(false);
+  document.getElementById('answerBtn').innerHTML = '🎙 Start answering';
+}
+
+/* ─── ui helpers ─── */
+function setAiSpeaking(speaking) {
+  const av = document.getElementById('aiAvatar');
+  const st = document.getElementById('aiStatus');
+  if (speaking) { av.classList.add('active'); st.classList.add('live'); st.innerHTML = '<span class="status-dot"></span>Speaking…'; }
+  else { av.classList.remove('active'); st.classList.remove('live'); st.innerHTML = '<span class="status-dot"></span>Idle'; }
+}
+function setYouStatus(active, label) {
+  const st = document.getElementById('youStatus');
+  if (active) st.classList.add('live'); else st.classList.remove('live');
+  st.innerHTML = `<span class="status-dot"></span>${label}`;
+}
+function setYouListening(listening) {
+  const av = document.getElementById('youAvatar');
+  if (listening) { av.classList.add('active'); setYouStatus(true, 'Listening to you…'); }
+  else { av.classList.remove('active'); setYouStatus(false, 'Idle'); }
+}
+
+function addTranscriptLine(who, text, isInterim = false) {
+  const t = document.getElementById('transcript');
+  const div = document.createElement('div');
+  div.className = `transcript-line ${who.toLowerCase()}` + (isInterim ? ' interim' : '');
+  div.innerHTML = `<span class="who">${who === 'AI' ? 'Interviewer' : 'You'}</span>${escapeHtml(text)}`;
+  t.appendChild(div);
+  t.scrollTop = t.scrollHeight;
+  return div;
+}
+let liveYouLine = null;
+function updateLiveTranscript() {
+  const text = (state.currentFinal + state.currentInterim).trim();
+  if (!liveYouLine) liveYouLine = addTranscriptLine('YOU', text || '…', true);
+  else {
+    liveYouLine.innerHTML = `<span class="who">You</span>${escapeHtml(text || '…')}`;
+    const t = document.getElementById('transcript');
+    t.scrollTop = t.scrollHeight;
+  }
+}
+function finalizeYouLine() {
+  if (liveYouLine) {
+    const text = state.currentFinal.trim() || '(no answer captured)';
+    liveYouLine.classList.remove('interim');
+    liveYouLine.innerHTML = `<span class="who">You</span>${escapeHtml(text)}`;
+  }
+  liveYouLine = null;
+}
+
+function startTimer() {
+  state.callStartTs = Date.now();
+  state.timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - state.callStartTs) / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    document.getElementById('callTimer').textContent = `${mm}:${ss}`;
+  }, 1000);
+}
+function stopTimer() { clearInterval(state.timerInterval); state.timerInterval = null; }
+
+/* ─── interview flow ─── */
+async function startInterview() {
+  if (!SpeechRecognition) { showError('Voice recognition isn\'t supported in this browser. Try Chrome or Edge on desktop.'); return; }
+  if (!('speechSynthesis' in window)) { showError('Voice playback isn\'t supported.'); return; }
+
+  state.candidate = {
+    name:  document.getElementById('name').value.trim(),
+    field: document.getElementById('field').value.trim(),
+    role:  document.getElementById('role').value.trim(),
+    level: document.getElementById('level').value,
+  };
+  state.answers = [];
+  state.current = 0;
+  state.questions = pickQuestions(state.candidate.level);
+
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  document.getElementById('startBtnLabel').textContent = 'Connecting…';
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+  } catch (e) {
+    showError('Microphone access denied. Please allow it in your browser settings and try again.');
+    btn.disabled = false;
+    document.getElementById('startBtnLabel').textContent = '📞 Start the call';
+    return;
+  }
+
+  await loadVoices();
+
+  document.getElementById('youName').textContent = state.candidate.name;
+  document.getElementById('youInitial').textContent = (state.candidate.name[0] || '•').toUpperCase();
+  document.getElementById('transcript').innerHTML = '';
+
+  show('panel-call');
+  startTimer();
+
+  const firstName = state.candidate.name.split(' ')[0] || state.candidate.name;
+  const greeting = `Hello ${firstName}. Thanks for joining the call. I'll ask you five quick questions for a ${state.candidate.role} position. Take your time with each answer, and click the button when you're done. Let's begin.`;
+  addTranscriptLine('AI', greeting);
+  await speak(greeting);
+
+  await askCurrentQuestion();
+}
+
+async function askCurrentQuestion() {
+  const q = state.questions[state.current];
+  const n = state.current + 1;
+  document.getElementById('progressLabel').textContent = `Question ${n} of ${state.questions.length}`;
+  document.getElementById('progressFill').style.width = (((n-1) / state.questions.length) * 100) + '%';
+
+  document.getElementById('answerBtn').disabled = true;
+  document.getElementById('repeatBtn').disabled = true;
+  document.getElementById('skipBtn').disabled = true;
+
+  addTranscriptLine('AI', q.question);
+  await speak(q.question);
+
+  document.getElementById('answerBtn').disabled = false;
+  document.getElementById('repeatBtn').disabled = false;
+  document.getElementById('skipBtn').disabled = false;
+  setYouStatus(false, 'Your turn — click to answer');
+  showHelp('Click <b>🎙 Start answering</b> when you\'re ready to speak. Click it again when you\'re done.');
+}
+
+function repeatQuestion() {
+  if (state.isListening) return;
+  speak(state.questions[state.current].question);
+}
+
+function toggleAnswering() {
+  if (state.isListening) {
+    stopListening();
+    const answer = state.currentFinal.trim();
+    finalizeYouLine();
+    state.answers.push({
+      question: state.questions[state.current].question,
+      topic: state.questions[state.current].topic,
+      answer: answer || '(no answer captured)',
+    });
+    clearHelp();
+    moveToNext();
+  } else {
+    clearHelp();
+    startListening();
+  }
+}
+
+function skipQuestion() {
+  if (state.isListening) stopListening();
+  state.answers.push({
+    question: state.questions[state.current].question,
+    topic: state.questions[state.current].topic,
+    answer: '(skipped)',
+  });
+  addTranscriptLine('YOU', '(skipped)');
+  clearHelp();
+  moveToNext();
+}
+
+async function moveToNext() {
+  state.current++;
+  document.getElementById('answerBtn').disabled = true;
+  document.getElementById('repeatBtn').disabled = true;
+  document.getElementById('skipBtn').disabled = true;
+  if (state.current >= state.questions.length) {
+    const wrap = 'That wraps up our questions. Give me a moment while I put together your feedback.';
+    addTranscriptLine('AI', wrap);
+    await speak(wrap);
+    stopTimer();
+    generateFeedback();
+  } else {
+    const transitions = ['Great. Next question.', 'Thanks. Moving on.', 'Got it. Here\'s the next one.', 'Okay. Next up.'];
+    const t = transitions[Math.floor(Math.random() * transitions.length)];
+    addTranscriptLine('AI', t);
+    await speak(t);
+    askCurrentQuestion();
+  }
+}
+
+function endCallEarly() {
+  if (!confirm('End the call now? You\'ll still get feedback on what you answered.')) return;
+  if (state.isListening) {
+    stopListening();
+    const answer = state.currentFinal.trim();
+    finalizeYouLine();
+    if (answer) state.answers.push({
+      question: state.questions[state.current].question,
+      topic: state.questions[state.current].topic,
+      answer,
+    });
+  }
+  stopSpeaking();
+  stopTimer();
+  if (state.answers.length === 0) { restart(); return; }
+  generateFeedback();
+}
+
+/* ─── feedback panel ─── */
+function generateFeedback() {
+  show('panel-thinking');
+  const messages = ['Reading through your answers…', 'Counting filler words…', 'Checking structure…', 'Drafting your feedback…'];
+  let mi = 0;
+  const cycle = setInterval(() => {
+    mi = (mi + 1) % messages.length;
+    document.getElementById('thinkingText').textContent = messages[mi];
+  }, 900);
+
+  // small artificial delay so the "thinking" feels real (not instant)
+  setTimeout(() => {
+    const fb = aggregateFeedback(state.answers, state.candidate);
+    clearInterval(cycle);
+    renderFeedback(fb);
+  }, 2200);
+}
+
+function renderFeedback(fb) {
+  document.getElementById('feedbackByline').textContent = `Prepared for ${state.candidate.name} · interviewing for ${state.candidate.role}`;
+  const scores = fb.scores || {};
+  const cells = [
+    { label: 'Overall', value: scores.overall },
+    { label: 'Clarity', value: scores.clarity },
+    { label: 'Structure', value: scores.structure },
+    { label: 'Confidence', value: scores.confidence },
+  ];
+  document.getElementById('scoreRow').innerHTML = cells.map(c => `
+    <div class="score-cell">
+      <div class="score-label">${c.label}</div>
+      <div class="score-value">${c.value ?? '—'}<span class="denom">/100</span></div>
+    </div>`).join('');
+
+  document.getElementById('verdictText').textContent = fb.verdict || '';
+  document.getElementById('strengthsList').innerHTML = (fb.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  document.getElementById('improveList').innerHTML = (fb.improvements || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+
+  document.getElementById('perQuestionList').innerHTML = fb.per_question.map((p, i) => {
+    return `
+      <div class="qa-item">
+        <div class="qa-head">
+          <div class="qa-q">${i+1}. ${escapeHtml(p.question)}</div>
+          <div class="qa-score">Score · ${p.score ?? '—'}/10</div>
+        </div>
+        <div class="qa-answer">${escapeHtml(p.answer)}</div>
+        <div class="qa-coach">${escapeHtml(p.note || '—')}</div>
+        <div class="qa-metrics">
+          <span>Length<b>${p.metrics.length}/10</b></span>
+          <span>Specificity<b>${p.metrics.specificity}/10</b></span>
+          <span>Structure<b>${p.metrics.structure}/10</b></span>
+          <span>Confidence<b>${p.metrics.confidence}/10</b></span>
+          <span>Fillers<b>${p.metrics.fillers}/10</b></span>
+          <span>Relevance<b>${p.metrics.relevance}/10</b></span>
+        </div>
+      </div>`;
+  }).join('');
+  show('panel-feedback');
+}
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function restart() {
+  stopSpeaking(); stopListening(); stopTimer();
+  document.getElementById('intakeForm').reset();
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtnLabel').textContent = '📞 Start the call';
+  document.getElementById('transcript').innerHTML = '';
+  document.getElementById('callTimer').textContent = '00:00';
+  document.getElementById('progressFill').style.width = '0%';
+  state.questions = []; state.answers = []; state.current = 0;
+  show('panel-intake');
+}
+
+window.addEventListener('beforeunload', () => { stopSpeaking(); stopListening(); });
+
+// expose for onclick handlers
+window.startInterview = startInterview;
+window.repeatQuestion = repeatQuestion;
+window.toggleAnswering = toggleAnswering;
+window.skipQuestion = skipQuestion;
+window.endCallEarly = endCallEarly;
+window.restart = restart;
+</script>
+</body>
+</html>
